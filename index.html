@@ -85,13 +85,14 @@
     <h6 id="connected">Online: 
         <span id="num-connected"></span>
     </h6>
+    <ul class="username-list"></ul>
     <ul id="messages"></ul>
 
     <div class="set-username">
         
         <form id="username-form">
             <p>Choose an alias</p>
-            <input "userName" placeholder="type your username here">
+            <input id="user-name-input" placeholder="type your username here">
             <input type="submit" name="Select">
         </form>
     </div>
@@ -105,15 +106,19 @@
         var socket = io();
         var overlay = document.querySelector('.set-username');
         var usernameForm = document.querySelector('#username-form');
-        overlay.classList.add('active');
-        overlay.classList.add('specific');
+        var userNameInput = document.querySelector('#user-name-input');
         usernameForm.addEventListener('submit', (e)=>{
             e.preventDefault();
+            let newUserName = userNameInput.value;
+            console.log("the new username: ",  newUserName)
+            socket.emit('user name given', newUserName);
             overlay.style.display = 'none';
         })
 
         var infobar = document.querySelector('#information');
         var numberConnectedDisplay = document.querySelector('#num-connected');
+        var usernameList = document.querySelector('.username-list');
+
         var messageList = document.querySelector('#messages')
         var form = document.querySelector("#mainform");
         var input = document.getElementById('m');
@@ -123,6 +128,8 @@
             input.value = "";
             socket.emit('chat message', message);
         })
+
+
         socket.on('chat message', (msg)=>{
             var newMessage = document
             var li = document.createElement('li');
@@ -138,11 +145,22 @@
         socket.on('users online', (numberOfUsers)=>{
             numberConnectedDisplay.innerHTML = numberOfUsers;
         })
+        socket.on('user name list', (list)=>{
+            while (usernameList.firstChild) {
+                usernameList.removeChild(usernameList.firstChild);
+            }
+            let userList = list.map((user)=>{
+                var userLi = document.createElement('li');
+                userLi.appendChild(document.createTextNode(user));
+                usernameList.appendChild(userLi);
+            });
+        })
         socket.on('disconnect', ()=>{
             usersConnected(-1);
             infobar.innerHTML = "A user disconnected";
             numberConnectedDisplay.innerHTML = usersOnline;
         })
+
     </script>
 </body>
 
