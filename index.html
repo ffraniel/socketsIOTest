@@ -56,6 +56,10 @@
 </head>
 
 <body>
+    <h6 id="information"></h6>
+    <h6 id="connected">Online: 
+        <span id="num-connected"></span>
+    </h6>
     <ul id="messages"></ul>
     <form action="">
         <input id="m" autocomplete="off" /><button>Send</button>
@@ -64,6 +68,10 @@
     <script src="/socket.io/socket.io.js"></script>
     <script>
         var socket = io();
+
+
+        var infobar = document.querySelector('#information');
+        var numberConnectedDisplay = document.querySelector('#num-connected');
         var messageList = document.querySelector('#messages')
         var form = document.querySelector("form");
         var input = document.getElementById('m');
@@ -78,6 +86,20 @@
             var li = document.createElement('li');
             li.appendChild(document.createTextNode(msg));
             messageList.appendChild(li);
+        })
+        socket.on('user connected', ()=>{
+            infobar.innerHTML = "A user connected";
+            setTimeout(()=>{ 
+                infobar.innerHTML =""; 
+            }, 2000);
+        })
+        socket.on('users online', (numberOfUsers)=>{
+            numberConnectedDisplay.innerHTML = numberOfUsers;
+        })
+        socket.on('disconnect', ()=>{
+            usersConnected(-1);
+            infobar.innerHTML = "A user disconnected";
+            numberConnectedDisplay.innerHTML = usersOnline;
         })
     </script>
 </body>
