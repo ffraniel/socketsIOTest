@@ -16,7 +16,9 @@ const usersConnected = (num)=>{
 
 io.on('connection', (socket)=>{
     console.log('a user connected');
+
     usersConnected(1);   
+
     io.emit('user connected', usersOnline);
     io.emit('users online', usersOnline);
 
@@ -26,16 +28,26 @@ io.on('connection', (socket)=>{
     })
 
     socket.on('chat message', (msg)=>{
-        console.log("a user sent a messsage");
+        console.log("A user sent a messsage");
         io.emit('chat message', msg);
     });
 
     socket.on('disconnect', ()=>{
-        console.log('the user disconnected');
+        console.log('A user disconnected');
         usersConnected(-1); 
-        io.emit('users online', usersOnline);
-        io.emit('user name list', currentUsers);
+        io.emit('disconnect')
+        io.emit('check users');
     });
+
+    socket.on('recheck client', (user)=>{
+        console.log("rechecking that ", user, " is still there");
+        currentUsers = [];
+        currentUsers.push(user);
+        setTimeout(()=>{ 
+            io.emit('user name list', currentUsers);
+            io.emit('users online', usersOnline);
+        }, 1000);
+    })
 });
 
 http.listen(PORT, ()=>{

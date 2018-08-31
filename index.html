@@ -107,14 +107,6 @@
         var overlay = document.querySelector('.set-username');
         var usernameForm = document.querySelector('#username-form');
         var userNameInput = document.querySelector('#user-name-input');
-        usernameForm.addEventListener('submit', (e)=>{
-            e.preventDefault();
-            let newUserName = userNameInput.value;
-            console.log("the new username: ",  newUserName)
-            socket.emit('user name given', newUserName);
-            overlay.style.display = 'none';
-        })
-
         var infobar = document.querySelector('#information');
         var numberConnectedDisplay = document.querySelector('#num-connected');
         var usernameList = document.querySelector('.username-list');
@@ -122,18 +114,30 @@
         var messageList = document.querySelector('#messages')
         var form = document.querySelector("#mainform");
         var input = document.getElementById('m');
+
+        var clientUser;
+
+        usernameForm.addEventListener('submit', (e)=>{
+            e.preventDefault();
+            clientUser = userNameInput.value || "anon - so probably a creep";
+            socket.emit('user name given', clientUser);
+            overlay.style.display = 'none';
+        })      
+
         form.addEventListener('submit', (e)=>{
             e.preventDefault();
             var message = input.value;
             input.value = "";
-            socket.emit('chat message', message);
+            socket.emit('chat message', {
+                username: clientUser,
+                message:message
+            });
         })
 
-
-        socket.on('chat message', (msg)=>{
-            var newMessage = document
+        socket.on('chat message', ({username, message})=>{
+            var text = `${username}: ${message}`; 
             var li = document.createElement('li');
-            li.appendChild(document.createTextNode(msg));
+            li.appendChild(document.createTextNode(text));
             messageList.appendChild(li);
         })
         socket.on('user connected', ()=>{
@@ -146,21 +150,23 @@
             numberConnectedDisplay.innerHTML = numberOfUsers;
         })
         socket.on('user name list', (list)=>{
+            console.log("the new user list: ", list)
             while (usernameList.firstChild) {
                 usernameList.removeChild(usernameList.firstChild);
             }
-            let userList = list.map((user)=>{
+            var userList = list.map((user)=>{
                 var userLi = document.createElement('li');
                 userLi.appendChild(document.createTextNode(user));
                 usernameList.appendChild(userLi);
             });
         })
         socket.on('disconnect', ()=>{
-            usersConnected(-1);
             infobar.innerHTML = "A user disconnected";
-            numberConnectedDisplay.innerHTML = usersOnline;
+            console.log("disconnect in browser")
         })
-
+        socket.on('check users', ()=>{
+            socket.emit('recheck client', clientUser);
+        })
     </script>
 </body>
 
